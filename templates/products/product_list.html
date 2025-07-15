@@ -16,7 +16,7 @@
             <ul class="list-group mb-4">
                 {% for category in categories %}
                     <li class="list-group-item {% if current_category and current_category.id == category.id %}active{% endif %}">
-                        <a href="{% url 'category_browse' category.slug %}" class="{% if current_category and current_category.id == category.id %}text-white{% endif %}">{{ category.name }}</a>
+                        <a href="{% url 'category_browse' category.slug %}" class="btn btn-link w-100 text-start {% if current_category and current_category.id == category.id %}text-white{% endif %}">{{ category.name }}</a>
                     </li>
                 {% empty %}
                     <li class="list-group-item">No categories yet.</li>
@@ -27,7 +27,7 @@
                 <ul class="list-group mb-4">
                     {% for subcat in subcategories %}
                         <li class="list-group-item">
-                            <a href="{% url 'category_browse' subcat.slug %}">{{ subcat.name }}</a>
+                            <a href="{% url 'category_browse' subcat.slug %}" class="btn btn-link w-100 text-start">{{ subcat.name }}</a>
                         </li>
                     {% endfor %}
                 </ul>

@@ -137,6 +137,7 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <form class="delete-user-form" data-user-id="{{ user.id }}">
+            {% csrf_token %}
             <div class="modal-header">
               <h5 class="modal-title" id="deleteUserModalLabel{{ user.id }}">Delete User</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -144,6 +145,7 @@
             <div class="modal-body">
                 <input type="hidden" name="user_id" value="{{ user.id }}">
                 <p>Are you sure you want to delete <strong>{{ user.username }}</strong>?</p>
+                <div id="delete-user-errors-{{ user.id }}" class="alert alert-danger d-none"></div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -198,17 +200,22 @@ $(function() {
     $('.delete-user-form').on('submit', function(e) {
         e.preventDefault();
         var userId = $(this).data('user-id');
-        var formData = $(this).serialize();
+        var $form = $(this);
+        var csrfToken = $form.find('input[name="csrfmiddlewaretoken"]').val();
         $.ajax({
             url: '/adminpanel/users/delete/' + userId + '/',
             method: 'POST',
-            data: formData,
+            data: { 'csrfmiddlewaretoken': csrfToken },
             success: function(data) {
                 $('#deleteUserModal' + userId).modal('hide');
                 location.reload();
             },
             error: function(xhr) {
-                alert('Could not delete user.');
+                var msg = 'Could not delete user.';
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    msg = xhr.responseJSON.errors;
+                }
+                $('#delete-user-errors-' + userId).removeClass('d-none').text(msg);
             }
         });
     });

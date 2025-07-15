@@ -16,7 +16,7 @@
                 <ul class="list-group">
                     {% for product in recently_viewed %}
                         <li class="list-group-item">
-                            <a href="{% url 'product_detail' product.id %}">{{ product.name }}</a>
+                            <a href="{% url 'product_detail' product.id %}" class="btn btn-link p-0">{{ product.name }}</a>
                         </li>
                     {% endfor %}
                 </ul>
