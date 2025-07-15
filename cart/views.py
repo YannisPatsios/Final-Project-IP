@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from .models import CartItem, Order, OrderItem
 from products.models import Product
+from .forms import CheckoutForm
 
 @login_required
 def cart_view(request):
@@ -55,24 +56,26 @@ def checkout(request):
     cart_items = CartItem.objects.filter(user=request.user)
     total = sum(item.product.price * item.quantity for item in cart_items)
     if request.method == 'POST':
-        address = request.POST.get('address', '').strip()
-        phone = request.POST.get('phone', '').strip()
-        country = request.POST.get('country', '').strip()
-        # Only use the fields that exist on the model
-        order = Order.objects.create(
-            user=request.user,
-            total=total,
-            address=address,
-            phone=phone,
-            country=country
-        )
-        for item in cart_items:
-            OrderItem.objects.create(
-                order=order,
-                product=item.product,
-                quantity=item.quantity,
-                price=item.product.price
+        form = CheckoutForm(request.POST)
+        if form.is_valid():
+            order = Order.objects.create(
+                user=request.user,
+                total=total,
+                address=form.cleaned_data['address'],
+                phone=form.cleaned_data['phone'],
+                country=form.cleaned_data['country']
             )
-        cart_items.delete()
-        return render(request, 'cart/checkout.html', {'total': total, 'success': True, 'order': order})
-    return render(request, 'cart/checkout.html', {'total': total, 'success': False})
+            for item in cart_items:
+                OrderItem.objects.create(
+                    order=order,
+                    product=item.product,
+                    quantity=item.quantity,
+                    price=item.product.price
+                )
+            cart_items.delete()
+            return render(request, 'cart/checkout.html', {'total': total, 'success': True, 'order': order})
+        else:
+            return render(request, 'cart/checkout.html', {'total': total, 'success': False, 'form': form})
+    else:
+        form = CheckoutForm()
+    return render(request, 'cart/checkout.html', {'total': total, 'success': False, 'form': form})
