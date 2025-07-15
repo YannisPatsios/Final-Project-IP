@@ -138,7 +138,17 @@ $(function() {
                 $form[0].reset();
             },
             error: function(xhr) {
-                $('#review-error').removeClass('d-none').text('Error: ' + (xhr.responseJSON && xhr.responseJSON.errors ? JSON.stringify(xhr.responseJSON.errors) : 'Could not submit review.'));
+                let msg = 'Could not submit review.';
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    if (typeof xhr.responseJSON.errors === 'object') {
+                        msg = Object.values(xhr.responseJSON.errors).join(' ');
+                    } else {
+                        msg = xhr.responseJSON.errors;
+                    }
+                } else if (xhr.responseText) {
+                    msg = xhr.responseText;
+                }
+                $('#review-error').removeClass('d-none').text('Error: ' + msg);
                 $('#review-success').addClass('d-none');
             }
         });
