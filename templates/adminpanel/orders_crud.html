@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+    <meta name="description" content="View all SDR World orders.">
+    <meta name="keywords" content="admin, orders, SDR, management">
+    <meta name="author" content="SDR World Team">
+    <meta name="robots" content="noindex, nofollow">
+    <meta property="og:title" content="Order Management - SDR World">
+{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2>All Orders</h2>
+    <table class="table table-bordered align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Order #</th>
+                <th>User</th>
+                <th>Date</th>
+                <th>Total</th>
+                <th>Items</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.id }}</td>
+                <td>{{ order.user.username }}</td>
+                <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                <td>${{ order.total|floatformat:2 }}</td>
+                <td>
+                    <ul class="mb-0">
+                        {% for item in order.items.all %}
+                            <li>{{ item.product.name }} (x{{ item.quantity }}) - ${{ item.price|floatformat:2 }}</li>
+                        {% endfor %}
+                    </ul>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No orders yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %} 

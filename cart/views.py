@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-from .models import CartItem
+from .models import CartItem, Order, OrderItem
 from products.models import Product
 
 @login_required
@@ -55,6 +55,15 @@ def checkout(request):
     cart_items = CartItem.objects.filter(user=request.user)
     total = sum(item.product.price * item.quantity for item in cart_items)
     if request.method == 'POST':
+        # Create Order
+        order = Order.objects.create(user=request.user, total=total)
+        for item in cart_items:
+            OrderItem.objects.create(
+                order=order,
+                product=item.product,
+                quantity=item.quantity,
+                price=item.product.price
+            )
         cart_items.delete()
-        return render(request, 'cart/checkout.html', {'total': total, 'success': True})
+        return render(request, 'cart/checkout.html', {'total': total, 'success': True, 'order': order})
     return render(request, 'cart/checkout.html', {'total': total, 'success': False})

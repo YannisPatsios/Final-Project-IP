@@ -6,11 +6,13 @@
     <meta name="robots" content="noindex, nofollow">
     <meta property="og:title" content="Product Management - SDR World">
 {% endblock %}
+{% load crispy_forms_tags %}
 {% block content %}
 <div class="container mt-5">
     <h2>Manage Products</h2>
-    <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addProductModal">Add Product</a>
-    <table class="table table-bordered align-middle">
+    <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addProductModal">Add Product</button>
+    <div id="product-message" class="alert d-none" role="alert"></div>
+    <table class="table table-bordered align-middle" id="products-table">
         <thead class="table-light">
             <tr>
                 <th>Name</th>
@@ -23,22 +25,166 @@
         </thead>
         <tbody>
             {% for product in products %}
-            <tr>
-                <td>{{ product.name }}</td>
-                <td>{{ product.brand }}</td>
-                <td>${{ product.price }}</td>
-                <td>{{ product.category.name }}</td>
+            <tr data-product-id="{{ product.id }}">
+                <td class="prod-name">{{ product.name }}</td>
+                <td class="prod-brand">{{ product.brand }}</td>
+                <td class="prod-price">${{ product.price }}</td>
+                <td class="prod-category">{{ product.category.name }}</td>
                 <td>{{ product.created_at|date:"Y-m-d H:i" }}</td>
                 <td>
-                    <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editProductModal{{ product.id }}">Edit</a>
-                    <a href="#" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteProductModal{{ product.id }}">Delete</a>
+                    <button class="btn btn-sm btn-primary edit-product-btn" data-id="{{ product.id }}" data-name="{{ product.name }}" data-brand="{{ product.brand }}" data-price="{{ product.price }}" data-category="{{ product.category.id }}">Edit</button>
+                    <button class="btn btn-sm btn-danger delete-product-btn" data-id="{{ product.id }}" data-name="{{ product.name }}">Delete</button>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-    <!-- Add Product Modal (to be implemented) -->
-    <!-- Edit Product Modal (to be implemented) -->
-    <!-- Delete Product Modal (to be implemented) -->
+
+    <!-- Add Product Modal -->
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="add-product-form" enctype="multipart/form-data">
+            <div class="modal-header">
+              <h5 class="modal-title" id="addProductModalLabel">Add Product</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div id="add-product-errors" class="alert alert-danger d-none"></div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-success">Add</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="edit-product-form" enctype="multipart/form-data">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editProductModalLabel">Edit Product</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <input type="hidden" name="product_id" id="edit-product-id">
+                <div id="edit-product-errors" class="alert alert-danger d-none"></div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Product Modal -->
+    <div class="modal fade" id="deleteProductModal" tabindex="-1" aria-labelledby="deleteProductModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="delete-product-form">
+            <div class="modal-header">
+              <h5 class="modal-title" id="deleteProductModalLabel">Delete Product</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="product_id" id="delete-product-id">
+                <p>Are you sure you want to delete <strong id="delete-product-name"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-danger">Delete</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(function() {
+    // Add Product
+    $('#add-product-form').on('submit', function(e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+        $.ajax({
+            url: "{% url 'product_add' %}",
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(data) {
+                $('#addProductModal').modal('hide');
+                location.reload();
+            },
+            error: function(xhr) {
+                $('#add-product-errors').removeClass('d-none').text(xhr.responseJSON && xhr.responseJSON.errors ? JSON.stringify(xhr.responseJSON.errors) : 'Could not add product.');
+            }
+        });
+    });
+    // Edit Product: open modal and fill form
+    $('.edit-product-btn').on('click', function() {
+        var row = $(this).closest('tr');
+        $('#edit-product-id').val($(this).data('id'));
+        $('#id_name').val($(this).data('name'));
+        $('#id_brand').val($(this).data('brand'));
+        $('#id_price').val($(this).data('price'));
+        $('#id_category').val($(this).data('category'));
+        // Image and description fields can be handled similarly if needed
+        $('#editProductModal').modal('show');
+    });
+    // Edit Product: submit
+    $('#edit-product-form').on('submit', function(e) {
+        e.preventDefault();
+        var productId = $('#edit-product-id').val();
+        var formData = new FormData(this);
+        $.ajax({
+            url: '/adminpanel/products/edit/' + productId + '/',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(data) {
+                $('#editProductModal').modal('hide');
+                location.reload();
+            },
+            error: function(xhr) {
+                $('#edit-product-errors').removeClass('d-none').text(xhr.responseJSON && xhr.responseJSON.errors ? JSON.stringify(xhr.responseJSON.errors) : 'Could not edit product.');
+            }
+        });
+    });
+    // Delete Product: open modal
+    $('.delete-product-btn').on('click', function() {
+        $('#delete-product-id').val($(this).data('id'));
+        $('#delete-product-name').text($(this).data('name'));
+        $('#deleteProductModal').modal('show');
+    });
+    // Delete Product: submit
+    $('#delete-product-form').on('submit', function(e) {
+        e.preventDefault();
+        var productId = $('#delete-product-id').val();
+        $.ajax({
+            url: '/adminpanel/products/delete/' + productId + '/',
+            method: 'POST',
+            data: { 'csrfmiddlewaretoken': $('input[name="csrfmiddlewaretoken"]').val() },
+            success: function(data) {
+                $('#deleteProductModal').modal('hide');
+                location.reload();
+            },
+            error: function() {
+                alert('Could not delete product.');
+            }
+        });
+    });
+});
+</script>
 {% endblock %} 
