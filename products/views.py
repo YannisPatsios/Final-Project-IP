@@ -37,9 +37,17 @@ def product_detail(request, pk):
         'review_form': review_form,
     })
 
+def get_descendant_category_ids(category):
+    ids = [category.id]
+    for subcat in category.subcategories.all():
+        ids.extend(get_descendant_category_ids(subcat))
+    return ids
+
 def category_browse(request, slug):
     category = get_object_or_404(Category, slug=slug)
-    products = Product.objects.filter(category=category).order_by('-created_at')
+    # Get all descendant category IDs (including self)
+    category_ids = get_descendant_category_ids(category)
+    products = Product.objects.filter(category__in=category_ids).order_by('-created_at')
     subcategories = category.subcategories.all()
     categories = Category.objects.filter(parent__isnull=True)
     return render(request, 'products/product_list.html', {

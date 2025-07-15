@@ -9,6 +9,32 @@
 {% block content %}
 <div class="container mt-5">
     <h2>All Orders</h2>
+    <div class="mb-3">
+        <span class="badge bg-secondary">Total: {{ order_count_all }}</span>
+        <span class="badge bg-warning text-dark">Ongoing: {{ order_count_ongoing }}</span>
+        <span class="badge bg-success">Completed: {{ order_count_completed }}</span>
+    </div>
+    <form class="row g-3 mb-3" method="get">
+        <div class="col-md-3">
+            <label for="status-filter" class="form-label">Status</label>
+            <select class="form-select" id="status-filter" name="status">
+                <option value="">All</option>
+                <option value="ongoing" {% if status_filter == 'ongoing' %}selected{% endif %}>Ongoing</option>
+                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="date-from" class="form-label">From</label>
+            <input type="date" class="form-control" id="date-from" name="date_from" value="{{ date_from }}">
+        </div>
+        <div class="col-md-3">
+            <label for="date-to" class="form-label">To</label>
+            <input type="date" class="form-control" id="date-to" name="date_to" value="{{ date_to }}">
+        </div>
+        <div class="col-md-3 align-self-end">
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </div>
+    </form>
     <table class="table table-bordered align-middle">
         <thead class="table-light">
             <tr>
@@ -17,6 +43,12 @@
                 <th>Date</th>
                 <th>Total</th>
                 <th>Items</th>
+                <th>Address</th>
+                <th>Country</th>
+                <th>Phone</th>
+                <th>Status</th>
+                <th>Update Status</th>
+                <th>Delete</th>
             </tr>
         </thead>
         <tbody>
@@ -33,11 +65,75 @@
                         {% endfor %}
                     </ul>
                 </td>
+                <td>{{ order.address }}</td>
+                <td>{{ order.country }}</td>
+                <td>{{ order.phone }}</td>
+                <td><span class="badge {% if order.status == 'completed' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ order.get_status_display }}</span></td>
+                <td>
+                    <form class="order-status-form" data-order-id="{{ order.id }}">
+                        {% csrf_token %}
+                        <select name="status" class="form-select form-select-sm">
+                            <option value="ongoing" {% if order.status == 'ongoing' %}selected{% endif %}>Ongoing</option>
+                            <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>Completed</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-primary mt-1">Update</button>
+                    </form>
+                </td>
+                <td>
+                    <form class="order-delete-form" data-order-id="{{ order.id }}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </td>
             </tr>
             {% empty %}
-            <tr><td colspan="5">No orders yet.</td></tr>
+            <tr><td colspan="11">No orders yet.</td></tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(function() {
+    $('.order-status-form').on('submit', function(e) {
+        e.preventDefault();
+        var $form = $(this);
+        var orderId = $form.data('order-id');
+        var status = $form.find('select[name="status"]').val();
+        $.ajax({
+            url: '/adminpanel/orders/update-status/' + orderId + '/',
+            method: 'POST',
+            data: {
+                'status': status,
+                'csrfmiddlewaretoken': $form.find('input[name="csrfmiddlewaretoken"]').val()
+            },
+            success: function(data) {
+                location.reload();
+            },
+            error: function(xhr) {
+                alert('Could not update order status.');
+            }
+        });
+    });
+    $('.order-delete-form').on('submit', function(e) {
+        e.preventDefault();
+        if (!confirm('Are you sure you want to delete this order?')) return;
+        var $form = $(this);
+        var orderId = $form.data('order-id');
+        $.ajax({
+            url: '/adminpanel/orders/delete/' + orderId + '/',
+            method: 'POST',
+            data: {
+                'csrfmiddlewaretoken': $form.find('input[name="csrfmiddlewaretoken"]').val()
+            },
+            success: function(data) {
+                location.reload();
+            },
+            error: function(xhr) {
+                alert('Could not delete order.');
+            }
+        });
+    });
+});
+</script>
 {% endblock %} 

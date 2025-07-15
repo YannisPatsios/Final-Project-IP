@@ -6,11 +6,13 @@
     <meta name="robots" content="noindex, nofollow">
     <meta property="og:title" content="Category Management - SDR World">
 {% endblock %}
+{% load crispy_forms_tags %}
 {% block content %}
 <div class="container mt-5">
     <h2>Manage Categories</h2>
-    <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addCategoryModal">Add Category</a>
-    <table class="table table-bordered align-middle">
+    <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addCategoryModal">Add Category</button>
+    <div id="category-message" class="alert d-none" role="alert"></div>
+    <table class="table table-bordered align-middle" id="categories-table">
         <thead class="table-light">
             <tr>
                 <th>Name</th>
@@ -21,20 +23,189 @@
         </thead>
         <tbody>
             {% for category in categories %}
-            <tr>
-                <td>{{ category.name }}</td>
-                <td>{{ category.slug }}</td>
-                <td>{% if category.parent %}{{ category.parent.name }}{% else %}-{% endif %}</td>
+            <tr data-category-id="{{ category.id }}">
+                <td class="cat-name">{{ category.name }}</td>
+                <td class="cat-slug">{{ category.slug }}</td>
+                <td class="cat-parent">{% if category.parent %}{{ category.parent.name }}{% else %}-{% endif %}</td>
                 <td>
-                    <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editCategoryModal{{ category.id }}">Edit</a>
-                    <a href="#" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteCategoryModal{{ category.id }}">Delete</a>
+                    <button class="btn btn-sm btn-primary edit-category-btn" data-id="{{ category.id }}" data-name="{{ category.name }}" data-slug="{{ category.slug }}" data-parent="{% if category.parent %}{{ category.parent.id }}{% else %}0{% endif %}">Edit</button>
+                    <button class="btn btn-sm btn-danger delete-category-btn" data-id="{{ category.id }}" data-name="{{ category.name }}">Delete</button>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-    <!-- Add Category Modal (to be implemented) -->
-    <!-- Edit Category Modal (to be implemented) -->
-    <!-- Delete Category Modal (to be implemented) -->
+
+    <!-- Add Category Modal -->
+    <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="add-category-form">
+            <div class="modal-header">
+              <h5 class="modal-title" id="addCategoryModalLabel">Add Category</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% csrf_token %}
+                <div class="mb-3">
+                  <label for="add-name" class="form-label">Name</label>
+                  <input type="text" class="form-control" id="add-name" name="name" required>
+                </div>
+                <div class="mb-3">
+                  <label for="add-slug" class="form-label">Slug</label>
+                  <input type="text" class="form-control" id="add-slug" name="slug" required>
+                </div>
+                <div class="mb-3">
+                  <label for="add-parent" class="form-label">Parent</label>
+                  <select class="form-select" id="add-parent" name="parent">
+                    <option value="">---------</option>
+                    {% for cat in categories %}
+                      <option value="{{ cat.id }}">{{ cat.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div id="add-category-errors" class="alert alert-danger d-none"></div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-success">Add</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Category Modal -->
+    <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="edit-category-form">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editCategoryModalLabel">Edit Category</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% csrf_token %}
+                <input type="hidden" name="category_id" id="edit-category-id">
+                <div class="mb-3">
+                  <label for="edit-name" class="form-label">Name</label>
+                  <input type="text" class="form-control" id="edit-name" name="name" required>
+                </div>
+                <div class="mb-3">
+                  <label for="edit-slug" class="form-label">Slug</label>
+                  <input type="text" class="form-control" id="edit-slug" name="slug" required>
+                </div>
+                <div class="mb-3">
+                  <label for="edit-parent" class="form-label">Parent</label>
+                  <select class="form-select" id="edit-parent" name="parent">
+                    <option value="">---------</option>
+                    {% for cat in categories %}
+                      <option value="{{ cat.id }}">{{ cat.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div id="edit-category-errors" class="alert alert-danger d-none"></div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Category Modal -->
+    <div class="modal fade" id="deleteCategoryModal" tabindex="-1" aria-labelledby="deleteCategoryModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="delete-category-form">
+            <div class="modal-header">
+              <h5 class="modal-title" id="deleteCategoryModalLabel">Delete Category</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="category_id" id="delete-category-id">
+                <p>Are you sure you want to delete <strong id="delete-category-name"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-danger">Delete</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(function() {
+    // Add Category
+    $('#add-category-form').on('submit', function(e) {
+        e.preventDefault();
+        var formData = $(this).serialize();
+        $.ajax({
+            url: "{% url 'category_add' %}",
+            method: 'POST',
+            data: formData,
+            success: function(data) {
+                $('#addCategoryModal').modal('hide');
+                location.reload();
+            },
+            error: function(xhr) {
+                $('#add-category-errors').removeClass('d-none').text(xhr.responseJSON && xhr.responseJSON.errors ? JSON.stringify(xhr.responseJSON.errors) : 'Could not add category.');
+            }
+        });
+    });
+    // Edit Category: open modal and fill form
+    $('.edit-category-btn').on('click', function() {
+        $('#edit-category-id').val($(this).data('id'));
+        $('#edit-name').val($(this).data('name'));
+        $('#edit-slug').val($(this).data('slug'));
+        $('#edit-parent').val($(this).data('parent'));
+        $('#editCategoryModal').modal('show');
+    });
+    // Edit Category: submit
+    $('#edit-category-form').on('submit', function(e) {
+        e.preventDefault();
+        var categoryId = $('#edit-category-id').val();
+        var formData = $(this).serialize();
+        $.ajax({
+            url: '/adminpanel/categories/edit/' + categoryId + '/',
+            method: 'POST',
+            data: formData,
+            success: function(data) {
+                $('#editCategoryModal').modal('hide');
+                location.reload();
+            },
+            error: function(xhr) {
+                $('#edit-category-errors').removeClass('d-none').text(xhr.responseJSON && xhr.responseJSON.errors ? JSON.stringify(xhr.responseJSON.errors) : 'Could not edit category.');
+            }
+        });
+    });
+    // Delete Category: open modal
+    $('.delete-category-btn').on('click', function() {
+        $('#delete-category-id').val($(this).data('id'));
+        $('#delete-category-name').text($(this).data('name'));
+        $('#deleteCategoryModal').modal('show');
+    });
+    // Delete Category: submit
+    $('#delete-category-form').on('submit', function(e) {
+        e.preventDefault();
+        var categoryId = $('#delete-category-id').val();
+        $.ajax({
+            url: '/adminpanel/categories/delete/' + categoryId + '/',
+            method: 'POST',
+            data: { 'csrfmiddlewaretoken': $('input[name="csrfmiddlewaretoken"]').val() },
+            success: function(data) {
+                $('#deleteCategoryModal').modal('hide');
+                location.reload();
+            },
+            error: function() {
+                alert('Could not delete category.');
+            }
+        });
+    });
+});
+</script>
 {% endblock %} 

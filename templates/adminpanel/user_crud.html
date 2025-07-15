@@ -9,6 +9,8 @@
 {% block content %}
 <div class="container mt-5">
     <h2>Manage Users</h2>
+    <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button>
+    <div id="user-message" class="alert d-none" role="alert"></div>
     <table class="table table-bordered align-middle">
         <thead class="table-light">
             <tr>
@@ -27,16 +29,189 @@
                 <td>{% if user.is_staff %}<span class="badge bg-info">Yes</span>{% else %}No{% endif %}</td>
                 <td>{% if user.is_superuser %}<span class="badge bg-success">Yes</span>{% else %}No{% endif %}</td>
                 <td>
-                    <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editUserModal{{ user.id }}">Edit</a>
-                    {% if user != request.user and not user.is_superuser %}
-                        <a href="#" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ user.id }}">Delete</a>
+                    {% if request.user.is_superuser %}
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editUserModal{{ user.id }}">Edit</button>
+                        {% if user != request.user %}
+                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ user.id }}">Delete</button>
+                        {% endif %}
+                    {% elif not user.is_staff and not user.is_superuser %}
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editUserModal{{ user.id }}">Edit</button>
+                        {% if user != request.user %}
+                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ user.id }}">Delete</button>
+                        {% endif %}
                     {% endif %}
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-    <!-- Edit User Modal (to be implemented) -->
-    <!-- Delete User Modal (to be implemented) -->
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="add-user-form">
+            <div class="modal-header">
+              <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% csrf_token %}
+                <div class="mb-3">
+                  <label for="add-username" class="form-label">Username</label>
+                  <input type="text" class="form-control" id="add-username" name="username" required>
+                </div>
+                <div class="mb-3">
+                  <label for="add-email" class="form-label">Email</label>
+                  <input type="email" class="form-control" id="add-email" name="email" required>
+                </div>
+                <div class="mb-3">
+                  <label for="add-password" class="form-label">Password</label>
+                  <input type="password" class="form-control" id="add-password" name="password" required>
+                </div>
+                {% if request.user.is_superuser %}
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="checkbox" id="add-staff" name="is_staff">
+                  <label class="form-check-label" for="add-staff">Staff</label>
+                </div>
+                {% endif %}
+                <div id="add-user-errors" class="alert alert-danger d-none"></div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-success">Add</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!-- Edit User Modals -->
+    {% for user in users %}
+    <div class="modal fade" id="editUserModal{{ user.id }}" tabindex="-1" aria-labelledby="editUserModalLabel{{ user.id }}" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form class="edit-user-form" data-user-id="{{ user.id }}">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editUserModalLabel{{ user.id }}">Edit User</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% csrf_token %}
+                <input type="hidden" name="user_id" value="{{ user.id }}">
+                <div class="mb-3">
+                  <label for="edit-username-{{ user.id }}" class="form-label">Username</label>
+                  <input type="text" class="form-control" id="edit-username-{{ user.id }}" name="username" value="{{ user.username }}" required>
+                </div>
+                <div class="mb-3">
+                  <label for="edit-email-{{ user.id }}" class="form-label">Email</label>
+                  <input type="email" class="form-control" id="edit-email-{{ user.id }}" name="email" value="{{ user.email }}" required>
+                </div>
+                <div class="mb-3">
+                  <label for="edit-password-{{ user.id }}" class="form-label">Password (leave blank to keep unchanged)</label>
+                  <input type="password" class="form-control" id="edit-password-{{ user.id }}" name="password">
+                </div>
+                {% if request.user.is_superuser %}
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="checkbox" id="edit-staff-{{ user.id }}" name="is_staff" {% if user.is_staff %}checked{% endif %}{% if user.id == request.user.id and user.is_superuser %} disabled{% endif %}>
+                  <label class="form-check-label" for="edit-staff-{{ user.id }}">Staff</label>
+                </div>
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="checkbox" id="edit-superuser-{{ user.id }}" name="is_superuser" {% if user.is_superuser %}checked{% endif %}{% if user.id != request.user.id %} disabled{% else %} disabled{% endif %}>
+                  <label class="form-check-label" for="edit-superuser-{{ user.id }}">Superuser</label>
+                </div>
+                {% endif %}
+                <div id="edit-user-errors-{{ user.id }}" class="alert alert-danger d-none"></div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    <!-- Delete User Modals -->
+    {% for user in users %}
+    {% if user != request.user and not user.is_superuser %}
+    <div class="modal fade" id="deleteUserModal{{ user.id }}" tabindex="-1" aria-labelledby="deleteUserModalLabel{{ user.id }}" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form class="delete-user-form" data-user-id="{{ user.id }}">
+            <div class="modal-header">
+              <h5 class="modal-title" id="deleteUserModalLabel{{ user.id }}">Delete User</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="user_id" value="{{ user.id }}">
+                <p>Are you sure you want to delete <strong>{{ user.username }}</strong>?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-danger">Delete</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    {% endfor %}
 </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(function() {
+    // Add User
+    $('#add-user-form').on('submit', function(e) {
+        e.preventDefault();
+        var formData = $(this).serialize();
+        $.ajax({
+            url: "{% url 'user_add' %}",
+            method: 'POST',
+            data: formData,
+            success: function(data) {
+                $('#addUserModal').modal('hide');
+                location.reload();
+            },
+            error: function(xhr) {
+                $('#add-user-errors').removeClass('d-none').text(xhr.responseJSON && xhr.responseJSON.errors ? JSON.stringify(xhr.responseJSON.errors) : 'Could not add user.');
+            }
+        });
+    });
+    // Edit User
+    $('.edit-user-form').on('submit', function(e) {
+        e.preventDefault();
+        var userId = $(this).data('user-id');
+        var formData = $(this).serialize();
+        $.ajax({
+            url: '/adminpanel/users/edit/' + userId + '/',
+            method: 'POST',
+            data: formData,
+            success: function(data) {
+                $('#editUserModal' + userId).modal('hide');
+                location.reload();
+            },
+            error: function(xhr) {
+                $('#edit-user-errors-' + userId).removeClass('d-none').text(xhr.responseJSON && xhr.responseJSON.errors ? JSON.stringify(xhr.responseJSON.errors) : 'Could not edit user.');
+            }
+        });
+    });
+    // Delete User
+    $('.delete-user-form').on('submit', function(e) {
+        e.preventDefault();
+        var userId = $(this).data('user-id');
+        var formData = $(this).serialize();
+        $.ajax({
+            url: '/adminpanel/users/delete/' + userId + '/',
+            method: 'POST',
+            data: formData,
+            success: function(data) {
+                $('#deleteUserModal' + userId).modal('hide');
+                location.reload();
+            },
+            error: function(xhr) {
+                alert('Could not delete user.');
+            }
+        });
+    });
+});
+</script>
 {% endblock %} 

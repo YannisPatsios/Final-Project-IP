@@ -55,8 +55,17 @@ def checkout(request):
     cart_items = CartItem.objects.filter(user=request.user)
     total = sum(item.product.price * item.quantity for item in cart_items)
     if request.method == 'POST':
-        # Create Order
-        order = Order.objects.create(user=request.user, total=total)
+        address = request.POST.get('address', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        country = request.POST.get('country', '').strip()
+        # Only use the fields that exist on the model
+        order = Order.objects.create(
+            user=request.user,
+            total=total,
+            address=address,
+            phone=phone,
+            country=country
+        )
         for item in cart_items:
             OrderItem.objects.create(
                 order=order,
