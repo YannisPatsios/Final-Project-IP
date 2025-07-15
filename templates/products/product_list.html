@@ -45,12 +45,13 @@
                     <div class="col-md-4 mb-4">
                         <div class="card h-100">
                             {% if product.image %}
-                                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                                <a href="{% url 'product_detail' product.id %}"><img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}"></a>
                             {% endif %}
                             <div class="card-body">
-                                <h5 class="card-title">{{ product.name }}</h5>
+                                <h5 class="card-title"><a href="{% url 'product_detail' product.id %}" class="text-decoration-none">{{ product.name }}</a></h5>
                                 <p class="card-text">Brand: {{ product.brand }}</p>
                                 <p class="card-text">${{ product.price }}</p>
+                                <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-primary btn-sm mb-2">View Details</a>
                                 <form class="add-to-cart-form mt-2" data-product-id="{{ product.id }}">
                                     {% csrf_token %}
                                     <div class="input-group">

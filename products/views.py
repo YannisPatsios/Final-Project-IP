@@ -30,11 +30,20 @@ def product_detail(request, pk):
     reviews = Review.objects.filter(product=product).order_by('-created_at')
     avg_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
     review_form = ReviewForm()
+    user_has_purchased = False
+    if request.user.is_authenticated:
+        from cart.models import OrderItem
+        user_has_purchased = OrderItem.objects.filter(
+            order__user=request.user,
+            order__status='completed',
+            product=product
+        ).exists()
     return render(request, 'products/product_detail.html', {
         'product': product,
         'reviews': reviews,
         'avg_rating': avg_rating,
         'review_form': review_form,
+        'user_has_purchased': user_has_purchased,
     })
 
 def get_descendant_category_ids(category):
