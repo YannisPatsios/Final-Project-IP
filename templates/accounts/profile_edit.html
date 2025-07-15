@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+    <meta name="description" content="Edit your SDR World profile.">
+    <meta name="keywords" content="profile, edit, SDR, account">
+    <meta name="author" content="SDR World Team">
+    <meta name="robots" content="noindex, follow">
+    <meta property="og:title" content="Edit Profile - SDR World">
+{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2>Edit Profile</h2>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% load crispy_forms_tags %}
+                {{ form|crispy }}
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 
