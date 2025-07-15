@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+    <meta name="description" content="Manage SDR World categories.">
+    <meta name="keywords" content="admin, categories, CRUD, SDR">
+    <meta name="author" content="SDR World Team">
+    <meta name="robots" content="noindex, nofollow">
+    <meta property="og:title" content="Category Management - SDR World">
+{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Manage Categories</h2>
+    <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addCategoryModal">Add Category</a>
+    <table class="table table-bordered align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Name</th>
+                <th>Slug</th>
+                <th>Parent</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for category in categories %}
+            <tr>
+                <td>{{ category.name }}</td>
+                <td>{{ category.slug }}</td>
+                <td>{% if category.parent %}{{ category.parent.name }}{% else %}-{% endif %}</td>
+                <td>
+                    <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editCategoryModal{{ category.id }}">Edit</a>
+                    <a href="#" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteCategoryModal{{ category.id }}">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <!-- Add Category Modal (to be implemented) -->
+    <!-- Edit Category Modal (to be implemented) -->
+    <!-- Delete Category Modal (to be implemented) -->
+</div>
+{% endblock %} 

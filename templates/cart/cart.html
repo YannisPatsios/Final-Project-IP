@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+    <meta name="description" content="Your SDR World shopping cart.">
+    <meta name="keywords" content="cart, shopping, SDR, checkout">
+    <meta name="author" content="SDR World Team">
+    <meta name="robots" content="noindex, follow">
+    <meta property="og:title" content="Shopping Cart - SDR World">
+{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Your Cart</h2>
+    <div id="cart-message" class="alert d-none" role="alert"></div>
+    {% if cart_items %}
+        <table class="table table-bordered align-middle mt-4" id="cart-table">
+            <thead class="table-light">
+                <tr>
+                    <th>Product</th>
+                    <th>Brand</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_items %}
+                <tr data-product-id="{{ item.product.id }}">
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.product.brand }}</td>
+                    <td>${{ item.product.price }}</td>
+                    <td>
+                        <form class="d-inline update-qty-form" method="post" data-product-id="{{ item.product.id }}">
+                            {% csrf_token %}
+                            <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="form-control form-control-sm d-inline-block" style="width: 70px;">
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Update</button>
+                        </form>
+                    </td>
+                    <td class="item-subtotal">${{ item.product.price|floatformat:2|add:item.quantity|floatformat:2 }}</td>
+                    <td>
+                        <form class="d-inline remove-item-form" method="post" data-product-id="{{ item.product.id }}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="text-end">
+            <h4 id="cart-total">Total: ${{ total|floatformat:2 }}</h4>
+            <a href="{% url 'checkout' %}" class="btn btn-success">Proceed to Checkout</a>
+        </div>
+    {% else %}
+        <p>Your cart is empty.</p>
+    {% endif %}
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(function() {
+    // AJAX update quantity
+    $('.update-qty-form').on('submit', function(e) {
+        e.preventDefault();
+        var $form = $(this);
+        var productId = $form.data('product-id');
+        var quantity = $form.find('input[name="quantity"]').val();
+        $.ajax({
+            url: "{% url 'update_cart' %}",
+            method: 'POST',
+            data: {
+                'product_id': productId,
+                'quantity': quantity,
+                'csrfmiddlewaretoken': $form.find('input[name="csrfmiddlewaretoken"]').val()
+            },
+            success: function(data) {
+                $('#cart-message').removeClass('d-none alert-danger').addClass('alert-success').text('Quantity updated!');
+                setTimeout(function() { $('#cart-message').addClass('d-none'); }, 2000);
+                // Update subtotal and total
+                var price = parseFloat($form.closest('tr').find('td:nth-child(3)').text().replace('$',''));
+                var subtotal = (price * quantity).toFixed(2);
+                $form.closest('tr').find('.item-subtotal').text('$' + subtotal);
+                // Update total
+                var total = 0;
+                $('#cart-table tbody tr').each(function() {
+                    total += parseFloat($(this).find('.item-subtotal').text().replace('$',''));
+                });
+                $('#cart-total').text('Total: $' + total.toFixed(2));
+            },
+            error: function() {
+                $('#cart-message').removeClass('d-none alert-success').addClass('alert-danger').text('Error updating quantity.');
+                setTimeout(function() { $('#cart-message').addClass('d-none'); }, 2000);
+            }
+        });
+    });
+    // AJAX remove item
+    $('.remove-item-form').on('submit', function(e) {
+        e.preventDefault();
+        var $form = $(this);
+        var productId = $form.data('product-id');
+        $.ajax({
+            url: "{% url 'remove_from_cart' %}",
+            method: 'POST',
+            data: {
+                'product_id': productId,
+                'csrfmiddlewaretoken': $form.find('input[name="csrfmiddlewaretoken"]').val()
+            },
+            success: function(data) {
+                $('#cart-message').removeClass('d-none alert-danger').addClass('alert-success').text('Item removed!');
+                setTimeout(function() { $('#cart-message').addClass('d-none'); }, 2000);
+                $form.closest('tr').remove();
+                // Update total
+                var total = 0;
+                $('#cart-table tbody tr').each(function() {
+                    total += parseFloat($(this).find('.item-subtotal').text().replace('$',''));
+                });
+                $('#cart-total').text('Total: $' + total.toFixed(2));
+                if ($('#cart-table tbody tr').length === 0) {
+                    $('#cart-table').replaceWith('<p>Your cart is empty.</p>');
+                    $('.text-end').remove();
+                }
+            },
+            error: function() {
+                $('#cart-message').removeClass('d-none alert-success').addClass('alert-danger').text('Error removing item.');
+                setTimeout(function() { $('#cart-message').addClass('d-none'); }, 2000);
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

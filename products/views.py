@@ -1,7 +1,9 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from .models import Product, Category
-from django.db.models import Q
+from reviews.models import Review
+from reviews.forms import ReviewForm
+from django.db.models import Q, Avg
 
 # Create your views here.
 
@@ -18,8 +20,22 @@ def product_list(request):
     })
 
 def product_detail(request, pk):
-    # Placeholder for product detail
-    return render(request, 'products/product_detail.html')
+    product = get_object_or_404(Product, pk=pk)
+    # Track recently viewed products in session
+    recently_viewed = request.session.get('recently_viewed', [])
+    if pk not in recently_viewed:
+        recently_viewed = [pk] + recently_viewed
+        recently_viewed = recently_viewed[:10]  # Keep only last 10
+        request.session['recently_viewed'] = recently_viewed
+    reviews = Review.objects.filter(product=product).order_by('-created_at')
+    avg_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+    review_form = ReviewForm()
+    return render(request, 'products/product_detail.html', {
+        'product': product,
+        'reviews': reviews,
+        'avg_rating': avg_rating,
+        'review_form': review_form,
+    })
 
 def category_browse(request, slug):
     category = get_object_or_404(Category, slug=slug)

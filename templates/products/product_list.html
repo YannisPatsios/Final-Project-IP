@@ -39,6 +39,7 @@
                     <button class="btn btn-primary" type="submit">Search</button>
                 </div>
             </form>
+            <div id="add-to-cart-success" class="alert alert-success d-none" role="alert"></div>
             <div class="row">
                 {% for product in products %}
                     <div class="col-md-4 mb-4">
@@ -50,6 +51,13 @@
                                 <h5 class="card-title">{{ product.name }}</h5>
                                 <p class="card-text">Brand: {{ product.brand }}</p>
                                 <p class="card-text">${{ product.price }}</p>
+                                <form class="add-to-cart-form mt-2" data-product-id="{{ product.id }}">
+                                    {% csrf_token %}
+                                    <div class="input-group">
+                                        <input type="number" name="quantity" value="1" min="1" class="form-control form-control-sm" style="max-width: 70px;">
+                                        <button type="submit" class="btn btn-sm btn-success">Add to Cart</button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -62,4 +70,32 @@
         </main>
     </div>
 </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(function() {
+    $('.add-to-cart-form').on('submit', function(e) {
+        e.preventDefault();
+        var $form = $(this);
+        var productId = $form.data('product-id');
+        var quantity = $form.find('input[name="quantity"]').val();
+        $.ajax({
+            url: "{% url 'add_to_cart' %}",
+            method: 'POST',
+            data: {
+                'product_id': productId,
+                'quantity': quantity,
+                'csrfmiddlewaretoken': $form.find('input[name="csrfmiddlewaretoken"]').val()
+            },
+            success: function(data) {
+                $('#add-to-cart-success').removeClass('d-none').text('Added to cart!');
+                setTimeout(function() { $('#add-to-cart-success').addClass('d-none'); }, 2000);
+            },
+            error: function() {
+                $('#add-to-cart-success').removeClass('d-none').removeClass('alert-success').addClass('alert-danger').text('Please login to add to cart.');
+                setTimeout(function() { $('#add-to-cart-success').addClass('d-none').removeClass('alert-danger').addClass('alert-success'); }, 2000);
+            }
+        });
+    });
+});
+</script>
 {% endblock %} 

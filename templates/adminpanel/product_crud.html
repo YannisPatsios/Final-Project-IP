@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+    <meta name="description" content="Manage SDR World products.">
+    <meta name="keywords" content="admin, products, CRUD, SDR">
+    <meta name="author" content="SDR World Team">
+    <meta name="robots" content="noindex, nofollow">
+    <meta property="og:title" content="Product Management - SDR World">
+{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Manage Products</h2>
+    <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addProductModal">Add Product</a>
+    <table class="table table-bordered align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Name</th>
+                <th>Brand</th>
+                <th>Price</th>
+                <th>Category</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.name }}</td>
+                <td>{{ product.brand }}</td>
+                <td>${{ product.price }}</td>
+                <td>{{ product.category.name }}</td>
+                <td>{{ product.created_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                    <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editProductModal{{ product.id }}">Edit</a>
+                    <a href="#" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteProductModal{{ product.id }}">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <!-- Add Product Modal (to be implemented) -->
+    <!-- Edit Product Modal (to be implemented) -->
+    <!-- Delete Product Modal (to be implemented) -->
+</div>
+{% endblock %} 

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+    <meta name="description" content="Checkout confirmation for SDR World.">
+    <meta name="keywords" content="checkout, confirmation, SDR, order">
+    <meta name="author" content="SDR World Team">
+    <meta name="robots" content="noindex, follow">
+    <meta property="og:title" content="Checkout - SDR World">
+{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2>Checkout</h2>
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h4>Total: ${{ total|floatformat:2 }}</h4>
+                    {% if success %}
+                        <div class="alert alert-success mt-3">Thank you for your order! Your cart has been cleared.</div>
+                        <a href="/" class="btn btn-primary mt-2">Continue Shopping</a>
+                    {% else %}
+                        <form method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success">Confirm Order</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

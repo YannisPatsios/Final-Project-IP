@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+    <meta name="description" content="SDR World Admin Panel - Dashboard.">
+    <meta name="keywords" content="admin, dashboard, SDR, management">
+    <meta name="author" content="SDR World Team">
+    <meta name="robots" content="noindex, nofollow">
+    <meta property="og:title" content="Admin Dashboard - SDR World">
+{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Admin Panel</h2>
+    <div class="alert alert-info">You are logged in as: <strong>{{ user.username }}</strong> ({{ role }})</div>
+    <div class="row mt-4">
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Products</h5>
+                    <p class="card-text">Manage all SDR products in the catalogue.</p>
+                    <a href="{% url 'product_crud' %}" class="btn btn-primary">Manage Products</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Categories</h5>
+                    <p class="card-text">Manage product categories and subcategories.</p>
+                    <a href="{% url 'category_crud' %}" class="btn btn-primary">Manage Categories</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Users</h5>
+                    <p class="card-text">View and manage user accounts.</p>
+                    <a href="{% url 'user_crud' %}" class="btn btn-primary">Manage Users</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

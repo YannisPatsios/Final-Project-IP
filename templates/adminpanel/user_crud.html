@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+    <meta name="description" content="Manage SDR World users.">
+    <meta name="keywords" content="admin, users, CRUD, SDR">
+    <meta name="author" content="SDR World Team">
+    <meta name="robots" content="noindex, nofollow">
+    <meta property="og:title" content="User Management - SDR World">
+{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Manage Users</h2>
+    <table class="table table-bordered align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Staff</th>
+                <th>Superuser</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{% if user.is_staff %}<span class="badge bg-info">Yes</span>{% else %}No{% endif %}</td>
+                <td>{% if user.is_superuser %}<span class="badge bg-success">Yes</span>{% else %}No{% endif %}</td>
+                <td>
+                    <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editUserModal{{ user.id }}">Edit</a>
+                    {% if user != request.user and not user.is_superuser %}
+                        <a href="#" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ user.id }}">Delete</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <!-- Edit User Modal (to be implemented) -->
+    <!-- Delete User Modal (to be implemented) -->
+</div>
+{% endblock %} 
