@@ -47,15 +47,17 @@
         <div class="col-md-6">
             <h4>Reviews</h4>
             <div id="reviews-list">
-                {% for review in reviews %}
-                    <div class="border rounded p-2 mb-2">
-                        <strong>{{ review.user.username }}</strong> - <span class="text-warning">{% for i in "12345" %}{% if i|add:'0' <= review.rating %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star"></i>{% endif %}{% endfor %}</span>
-                        <small class="text-muted">{{ review.created_at|date:"Y-m-d H:i" }}</small>
-                        <div>{{ review.comment }}</div>
-                    </div>
-                {% empty %}
+                {% if reviews %}
+                    {% for review in reviews %}
+                        <div class="border rounded p-2 mb-2">
+                            <strong>{{ review.user.username }}</strong> - <span class="text-warning">{% for i in "12345" %}{% if i|add:'0' <= review.rating %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star"></i>{% endif %}{% endfor %}</span>
+                            <small class="text-muted">{{ review.created_at|date:"Y-m-d H:i" }}</small>
+                            <div>{{ review.comment }}</div>
+                        </div>
+                    {% endfor %}
+                {% else %}
                     <p>No reviews yet.</p>
-                {% endfor %}
+                {% endif %}
             </div>
         </div>
         <div class="col-md-6">
@@ -67,7 +69,7 @@
                         {% load crispy_forms_tags %}
                         {{ review_form|crispy }}
                         <input type="hidden" name="product_id" value="{{ product.id }}">
-                        <button type="submit" class="btn btn-primary">Submit Review</button>
+                        <button type="submit" class="btn btn-primary">{% if user_review %}Update Review{% else %}Submit Review{% endif %}</button>
                     </form>
                     <div id="review-success" class="alert alert-success d-none mt-2"></div>
                     <div id="review-error" class="alert alert-danger d-none mt-2"></div>

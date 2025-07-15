@@ -41,6 +41,40 @@
                     <button class="btn btn-primary" type="submit">Search</button>
                 </div>
             </form>
+            {% if recommended %}
+            <div class="mb-4">
+                <h4>Recommended for You</h4>
+                <div class="row">
+                    {% for product in recommended %}
+                    <div class="col-md-3 mb-3">
+                        <div class="card h-100 border-primary">
+                            {% if product.image %}
+                                <a href="{% url 'product_detail' product.id %}"><img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}"></a>
+                            {% endif %}
+                            <div class="card-body">
+                                <h6 class="card-title"><a href="{% url 'product_detail' product.id %}" class="text-decoration-none">{{ product.name }}</a></h6>
+                                <div class="mb-2">
+                                    <span class="text-warning">
+                                        {% with avg=product.reviews.all|average_rating %}
+                                            {% for i in "12345" %}
+                                                {% if i|add:'0' <= avg %}
+                                                    <i class="bi bi-star-fill"></i>
+                                                {% else %}
+                                                    <i class="bi bi-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <span class="ms-1">{{ avg|floatformat:1 }}/5</span>
+                                        {% endwith %}
+                                    </span>
+                                </div>
+                                <p class="card-text">${{ product.price }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
             <div id="add-to-cart-success" class="alert alert-success d-none" role="alert"></div>
             <div class="row">
                 {% for product in products %}

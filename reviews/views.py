@@ -9,14 +9,17 @@ from products.models import Product
 
 @login_required
 def submit_review(request):
-    if request.method == 'POST' and request.is_ajax():
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    if request.method == 'POST' and is_ajax:
+        print('POST DATA:', request.POST)
         form = ReviewForm(request.POST)
         product_id = request.POST.get('product_id')
         product = Product.objects.get(pk=product_id)
         if form.is_valid():
-            review = form.save(commit=False)
-            review.product = product
-            review.user = request.user
+            # Check for existing review
+            review, created = Review.objects.get_or_create(product=product, user=request.user)
+            review.rating = form.cleaned_data['rating']
+            review.comment = form.cleaned_data['comment']
             review.save()
             return JsonResponse({
                 'status': 'ok',
@@ -24,8 +27,10 @@ def submit_review(request):
                 'comment': review.comment,
                 'user': review.user.username,
                 'created_at': review.created_at.strftime('%Y-%m-%d %H:%M'),
+                'updated': not created,
             })
         else:
+            print('FORM ERRORS:', form.errors)
             return JsonResponse({'status': 'error', 'errors': form.errors}, status=400)
     return JsonResponse({'status': 'error'}, status=400)
 
