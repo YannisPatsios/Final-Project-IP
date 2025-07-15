@@ -19,6 +19,34 @@
             border-radius: 50%;
             margin-right: 6px;
         }
+        body.dark-mode {
+            background-color: #181a1b !important;
+            color: #e0e0e0 !important;
+        }
+        .dark-mode .navbar, .dark-mode .dropdown-menu {
+            background-color: #23272b !important;
+        }
+        .dark-mode .card, .dark-mode .list-group-item, .dark-mode .modal-content {
+            background-color: #23272b !important;
+            color: #e0e0e0 !important;
+        }
+        .dark-mode .form-control, .dark-mode .input-group-text {
+            background-color: #23272b !important;
+            color: #e0e0e0 !important;
+            border-color: #444 !important;
+        }
+        .dark-mode .btn-primary, .dark-mode .btn-outline-primary {
+            background-color: #375a7f !important;
+            border-color: #375a7f !important;
+        }
+        .dark-mode .btn-warning {
+            background-color: #ffc107 !important;
+            color: #23272b !important;
+        }
+        .dark-mode .list-group-item.active {
+            background-color: #375a7f !important;
+            border-color: #375a7f !important;
+        }
     </style>
 </head>
 <body>
@@ -69,11 +97,37 @@
                         <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Register</a></li>
                     {% endif %}
+                    <li class="nav-item ms-2">
+                        <button id="darkModeToggle" class="btn btn-outline-light btn-sm" title="Toggle dark mode">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-moon" viewBox="0 0 16 16">
+                                <path d="M6 0a7 7 0 0 0 0 14c3.866 0 7-3.134 7-7 0-.265-.015-.527-.045-.785A6.978 6.978 0 0 1 6 0z"/>
+                            </svg>
+                        </button>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
     {% block content %}{% endblock %}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // Dark mode toggle logic
+    function setDarkMode(on) {
+        if (on) {
+            document.body.classList.add('dark-mode');
+            localStorage.setItem('darkMode', 'on');
+        } else {
+            document.body.classList.remove('dark-mode');
+            localStorage.setItem('darkMode', 'off');
+        }
+    }
+    document.getElementById('darkModeToggle').addEventListener('click', function() {
+        setDarkMode(!document.body.classList.contains('dark-mode'));
+    });
+    // On page load, set dark mode if previously chosen
+    if (localStorage.getItem('darkMode') === 'on') {
+        document.body.classList.add('dark-mode');
+    }
+    </script>
 </body>
 </html> 

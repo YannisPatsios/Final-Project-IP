@@ -35,12 +35,6 @@
         </aside>
         <main class="col-md-9">
             <h1>Product Catalogue{% if current_category %} - {{ current_category.name }}{% endif %}</h1>
-            <form method="get" action="{% url 'product_list' %}" class="mb-4">
-                <div class="input-group">
-                    <input type="text" name="q" class="form-control" placeholder="Search products..." value="{{ search_query|default:'' }}">
-                    <button class="btn btn-primary" type="submit">Search</button>
-                </div>
-            </form>
             {% if recommended %}
             <div class="mb-4">
                 <h4>Recommended for You</h4>
@@ -75,6 +69,12 @@
                 </div>
             </div>
             {% endif %}
+            <form method="get" action="{% url 'product_list' %}" class="mb-4">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" placeholder="Search products..." value="{{ search_query|default:'' }}">
+                    <button class="btn btn-primary" type="submit">Search</button>
+                </div>
+            </form>
             <div id="add-to-cart-success" class="alert alert-success d-none" role="alert"></div>
             <div class="row">
                 {% for product in products %}
