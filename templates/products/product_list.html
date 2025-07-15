@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+    <meta name="description" content="Browse SDRs and accessories at SDR World.">
+    <meta name="keywords" content="SDR, radios, accessories, shop, catalogue">
+    <meta name="author" content="SDR World Team">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="SDR World Product Catalogue">
+{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <aside class="col-md-3">
+            <h5>Categories</h5>
+            <ul class="list-group mb-4">
+                {% for category in categories %}
+                    <li class="list-group-item {% if current_category and current_category.id == category.id %}active{% endif %}">
+                        <a href="{% url 'category_browse' category.slug %}" class="{% if current_category and current_category.id == category.id %}text-white{% endif %}">{{ category.name }}</a>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item">No categories yet.</li>
+                {% endfor %}
+            </ul>
+            {% if subcategories %}
+                <h6>Subcategories</h6>
+                <ul class="list-group mb-4">
+                    {% for subcat in subcategories %}
+                        <li class="list-group-item">
+                            <a href="{% url 'category_browse' subcat.slug %}">{{ subcat.name }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </aside>
+        <main class="col-md-9">
+            <h1>Product Catalogue{% if current_category %} - {{ current_category.name }}{% endif %}</h1>
+            <form method="get" action="{% url 'product_list' %}" class="mb-4">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" placeholder="Search products..." value="{{ search_query|default:'' }}">
+                    <button class="btn btn-primary" type="submit">Search</button>
+                </div>
+            </form>
+            <div class="row">
+                {% for product in products %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ product.name }}</h5>
+                                <p class="card-text">Brand: {{ product.brand }}</p>
+                                <p class="card-text">${{ product.price }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <p>No products available.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %} 
