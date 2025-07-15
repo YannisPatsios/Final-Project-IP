@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load average_rating %}
 {% block extra_head %}
     <meta name="description" content="Browse SDRs and accessories at SDR World.">
     <meta name="keywords" content="SDR, radios, accessories, shop, catalogue">
@@ -49,16 +51,23 @@
                             {% endif %}
                             <div class="card-body">
                                 <h5 class="card-title"><a href="{% url 'product_detail' product.id %}" class="text-decoration-none">{{ product.name }}</a></h5>
+                                <div class="mb-2">
+                                    <span class="text-warning">
+                                        {% with avg=product.reviews.all|average_rating %}
+                                            {% for i in "12345" %}
+                                                {% if i|add:'0' <= avg %}
+                                                    <i class="bi bi-star-fill"></i>
+                                                {% else %}
+                                                    <i class="bi bi-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <span class="ms-1">{{ avg|floatformat:1 }}/5</span>
+                                        {% endwith %}
+                                    </span>
+                                </div>
                                 <p class="card-text">Brand: {{ product.brand }}</p>
                                 <p class="card-text">${{ product.price }}</p>
                                 <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-primary btn-sm mb-2">View Details</a>
-                                <form class="add-to-cart-form mt-2" data-product-id="{{ product.id }}">
-                                    {% csrf_token %}
-                                    <div class="input-group">
-                                        <input type="number" name="quantity" value="1" min="1" class="form-control form-control-sm" style="max-width: 70px;">
-                                        <button type="submit" class="btn btn-sm btn-success">Add to Cart</button>
-                                    </div>
-                                </form>
                             </div>
                         </div>
                     </div>

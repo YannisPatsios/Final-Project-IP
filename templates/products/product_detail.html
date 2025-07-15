@@ -32,6 +32,14 @@
                     {% endfor %}
                 </span>
             </div>
+            <div id="add-to-cart-success" class="alert alert-success d-none" role="alert"></div>
+            <form id="add-to-cart-form" class="mt-3" data-product-id="{{ product.id }}">
+                {% csrf_token %}
+                <div class="input-group" style="max-width: 200px;">
+                    <input type="number" name="quantity" value="1" min="1" class="form-control form-control-sm">
+                    <button type="submit" class="btn btn-success btn-sm">Add to Cart</button>
+                </div>
+            </form>
         </div>
     </div>
     <hr>
@@ -76,6 +84,31 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(function() {
+    // AJAX add to cart
+    $('#add-to-cart-form').on('submit', function(e) {
+        e.preventDefault();
+        var $form = $(this);
+        var productId = $form.data('product-id');
+        var quantity = $form.find('input[name="quantity"]').val();
+        $.ajax({
+            url: "{% url 'add_to_cart' %}",
+            method: 'POST',
+            data: {
+                'product_id': productId,
+                'quantity': quantity,
+                'csrfmiddlewaretoken': $form.find('input[name="csrfmiddlewaretoken"]').val()
+            },
+            success: function(data) {
+                $('#add-to-cart-success').removeClass('d-none').text('Added to cart!');
+                setTimeout(function() { $('#add-to-cart-success').addClass('d-none'); }, 2000);
+            },
+            error: function() {
+                $('#add-to-cart-success').removeClass('d-none').removeClass('alert-success').addClass('alert-danger').text('Please login to add to cart.');
+                setTimeout(function() { $('#add-to-cart-success').addClass('d-none').removeClass('alert-danger').addClass('alert-success'); }, 2000);
+            }
+        });
+    });
+    // AJAX review form (existing)
     $('#review-form').on('submit', function(e) {
         e.preventDefault();
         var $form = $(this);
