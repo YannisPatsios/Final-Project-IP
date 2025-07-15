@@ -102,6 +102,9 @@ $(function() {
             },
             success: function(data) {
                 $('#add-to-cart-success').removeClass('d-none').text('Added to cart!');
+                if (data.cart_count !== undefined) {
+                    $('#cart-count-badge').text(data.cart_count);
+                }
                 setTimeout(function() { $('#add-to-cart-success').addClass('d-none'); }, 2000);
             },
             error: function() {
