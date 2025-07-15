@@ -62,6 +62,7 @@ def checkout(request):
                 user=request.user,
                 total=total,
                 address=form.cleaned_data['address'],
+                email=form.cleaned_data['email'],
                 phone=form.cleaned_data['phone'],
                 country=form.cleaned_data['country']
             )

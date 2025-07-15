@@ -4,6 +4,7 @@ from django_countries.widgets import CountrySelectWidget
 
 class CheckoutForm(forms.Form):
     address = forms.CharField(max_length=255, required=True, widget=forms.TextInput(attrs={'placeholder': 'Shipping Address', 'class': 'form-control'}))
+    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'placeholder': 'Email Address', 'class': 'form-control'}))
     country = CountryField().formfield(widget=CountrySelectWidget(attrs={'class': 'form-select'}), required=True)
     phone = forms.CharField(max_length=32, required=True, widget=forms.TextInput(attrs={'placeholder': 'Phone Number (e.g. +1234567890)', 'class': 'form-control'}))
 
