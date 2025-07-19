@@ -6,7 +6,6 @@ A modern Django e-commerce platform for Software Defined Radios (SDRs) and acces
 
 ## 🌟 Features
 - Product catalogue with category & subcategory browsing
-- Search and advanced AJAX filtering (brand, price)
 - User registration, login, logout, profile edit
 - Personalized dashboard (recently viewed, reviews, cart summary)
 - AJAX-powered star ratings and reviews
